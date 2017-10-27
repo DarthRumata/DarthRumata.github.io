@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<body>
+<code>
+import UIKit
+import Foundation
+
+let input = [(1, 8), (1, 9)]
+
+var currentFractial: (Int, Int)!
+
+let primeNumbers = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
+func sumFracts(_ l: [(Int, Int)]) -> (Int, Int)? {
+  if l.isEmpty {
+    return nil
+  }
+
+  l.forEach {
+    if currentFractial == nil {
+      currentFractial = $0
+    } else {
+      currentFractial = currentFractial + $0
+    }
+  }
+
+  return simplifyFractial(currentFractial)
+}
+
+func decomposeIntoPrimeNumbers(_ number: Int) -> [Int] {
+  if number == 1 {
+    return [1]
+  }
+  var dividerIndex = 0
+  var simpleMultipliers = [Int]()
+  var number = number
+  var divider: Int
+  repeat {
+    divider = primeNumbers[dividerIndex]
+    if number % divider == 0 {
+      number = number / divider
+      simpleMultipliers.append(divider)
+    } else {
+      dividerIndex += 1
+    }
+  } while (number != 1)
+
+  return simpleMultipliers
+}
+
+func calculateNOK(for pair: (Int, Int)) -> Int {
+  if pair.0 == pair.1 {
+    return pair.0
+  }
+
+  var higherNumber: Int
+  let lowerNumber: Int
+  if pair.0 > pair.1 {
+    higherNumber = pair.0
+    lowerNumber = pair.1
+  } else {
+    higherNumber = pair.1
+    lowerNumber = pair.0
+  }
+  let lowerMultipliers = decomposeIntoPrimeNumbers(lowerNumber)
+  var mainMultipliers = decomposeIntoPrimeNumbers(higherNumber)
+
+  var additionalMultipliers = [Int]()
+  for lowerMultiplier in lowerMultipliers {
+    if let index = mainMultipliers.index(of: lowerMultiplier) {
+      mainMultipliers.remove(at: index)
+    } else {
+      additionalMultipliers.append(lowerMultiplier)
+    }
+  }
+
+  return additionalMultipliers.reduce((higherNumber)) { (result, current) -> Int in
+    return result * current
+  }
+}
+
+func +(lhs: (n: Int, d: Int), rhs: (n: Int, d: Int)) -> (Int, Int) {
+  if lhs.d == rhs.d {
+    return (lhs.n + rhs.n, lhs.d)
+  }
+
+  let nok = calculateNOK(for: (lhs.d, rhs.d))
+  let normalizedLhsNumerator = nok / lhs.d * lhs.n
+  let normalizedRhsNumerator = nok / rhs.d * rhs.n
+
+  return (normalizedLhsNumerator + normalizedRhsNumerator, nok)
+}
+
+func simplifyFractial(_ fractial: (Int, Int)) -> (Int, Int) {
+  let numerator = fractial.0
+  let denomenator = fractial.1
+
+  if numerator == denomenator || numerator < 2 {
+    return fractial
+  }
+
+  let nod = calculateNOD(first: numerator, second: denomenator)
+  return (numerator / nod, denomenator / nod)
+}
+
+func calculateNOD(first a: Int, second b: Int) -> Int {
+  var a = a
+  var b = b
+  var d = 1
+
+  while (a != 0 && b != 0) {
+    switch (a, b) {
+    case (_, _) where a % 2 == 0 && b % 2 == 0:
+      d *= 2
+      a /= 2
+      b /= 2
+
+    case (_, _) where a % 2 == 0 && b % 2 == 1:
+      a /= 2
+
+    case (_, _) where a % 2 == 1 && b % 2 == 0:
+      b /= 2
+
+    case (_, _) where a % 2 == 1 && b % 2 == 1 && a >= b:
+      a = a - b
+
+    case (_, _) where a % 2 == 1 && b % 2 == 1 && a < b:
+      b = b - a
+
+    default:
+      fatalError("This case is impossible")
+    }
+  }
+
+  return a == 0 ? d * b : d * a
+}
+
+sumFracts(input)
+
+</code>
+
+</body>
+</html>
